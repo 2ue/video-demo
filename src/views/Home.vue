@@ -3,9 +3,9 @@
     <!-- 头部栏 -->
     <comp-nav></comp-nav>
     <div class="content" :class="$isMobile && 'content-mobile'">
-      <p style="margin-top: 20px">快速会议：随机会议ID和userId，并创建会议</p>
+      <p style="margin-top: 20px">快速会议：以当前登录userId和随机会议ID，开始会议</p>
       <el-row :gutter="20">
-        <el-col :span="24"><div class="grid-content">快速会议</div></el-col>
+        <el-col :span="24"><div class="grid-content" @click="fastJoin">快速会议</div></el-col>
       </el-row>
       <p>加入会议：手动输入会议ID和userID，如果会议ID不存在，则自动创建会议</p>
       <el-row :gutter="20">
@@ -18,10 +18,12 @@
 <script>
 import { mapState } from 'vuex';
 import compNav from '@/components/comp-nav.vue';
-import { clearUrlParam } from '@/utils/utils';
+import roomLink from  '@/components/mixins/room-link';
+import { clearUrlParam, genRoomId } from '@/utils/utils';
 
 export default {
   name: 'App',
+  mixins: [roomLink],
   components: {
     compNav,
   },
@@ -44,6 +46,14 @@ export default {
     },
     join() {
       this.$router.push('/join');
+    },
+    fastJoin() {
+      const link = this.generateRoomLink({
+        roomId: genRoomId(),
+        userId: this.userId,
+      }, 'room');
+      console.log('xxxxx===>', genRoomId(), link);
+      window.location.href = link;
     },
   },
   mounted() {

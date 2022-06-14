@@ -6,6 +6,7 @@ export default {
     sdkIsReady: false,
     groupId: localstorage.getItem('groupId') || '',
     group: {},
+    groupOwnerId: '',
   },
   mutations: {
     updateGroupId(state, value) {
@@ -16,6 +17,11 @@ export default {
     updateSdkIsReady(state, value) {
       console.log('xxx updateSdkIsReady===>', value);
       state.sdkIsReady = value;
+    },
+    updateGroupInfo(state, value) {
+      console.log('xxx updateGroupInfo===>', value);
+      state.group = value;
+      state.groupOwnerId = value?.groupProfile?.ownerID || '';
     },
   },
 };

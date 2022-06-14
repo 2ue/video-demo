@@ -27,6 +27,11 @@ export default {
       },
     };
   },
+  beforeRouteEnter(to, from, next) {
+    console.log('to===>', to);
+    console.log('from===>', from);
+    next();
+  },
   created() {
     this.$localstorage.removeItem(['userId', 'password']);
   },
@@ -36,11 +41,12 @@ export default {
     },
     submit() {
       console.log('form===>', this.form);
-      if (!this.form.userId || !this.form.password) {
+      const uId = this.form.userId;
+      if (!uId || !this.form.password) {
         this.$alert('请输入userId或者密码', '提示');
         return;
       }
-      const userId = `user_${parseInt(Math.random() * 100000000, 10)}_${this.form.userId}`;
+      const userId = uId.includes('user_') ? uId : `user_${parseInt(Math.random() * 100000000, 10)}_${uId}`;
       this.$localstorage.setItem({
         userId,
       });

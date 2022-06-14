@@ -5,6 +5,13 @@ import { mapState } from 'vuex';
 const GROUP_TYPE = TIM.TYPES.GRP_MEETING;
 
 export default {
+  data() {
+    return {
+      nextReqMessageID: null,
+      isCompleted: false,
+      messageList: [],
+    };
+  },
   computed: {
     ...mapState({
       groupId: state => state.tim.groupId,
@@ -19,6 +26,8 @@ export default {
           // console.log('watch SDK===>', value, this.groupId);
           if (!this.groupId) {
             this.createGroup();
+          } else {
+            this.joinGroup(this.groupId);
           }
         }
       },
@@ -56,6 +65,9 @@ export default {
     },
     conversationListUpdate(event) {
       console.log('TIM.EVENT.CONVERSATION_LIST_UPDATED', event);
+      const list = event.data;
+      const group = list.find(c => `${c.conversationID.replace(c.type, '')}` === this.groupId) || {};
+      this.$store.commit('tim/updateGroupInfo', group);
     },
     messageReceived(event) {
       console.log('TIM.EVENT.MESSAGE_RECEIVED', event);
@@ -114,16 +126,36 @@ export default {
         console.warn('quitGroup error:', imError);
       });
     },
-    sendMessage(options) {
+    sendMessage(text) {
+      console.log('sendMessage', text);
       const message = window.$tim.createTextMessage({
-        to: options.to,
-        conversationType: GROUP_TYPE,
+        to: this.groupId,
+        conversationType: 'GROUP',
         payload: {
-          text: 'Hello world!',
+          text,
         },
       });
       window.$tim.sendMessage(message).then((res) => {
         console.log(res);
+        if (res.code === 0) {
+          this.messageList.push(res.data.message);
+        } else {
+          this.$alert('发送失败', '提示');
+        }
+      });
+    },
+    getMessageList() {
+      const promise = window.$tim.getMessageList({ conversationID: `GROUP${this.groupId}`, count: 15 });
+      promise.then((imResponse) => {
+        const { messageList, nextReqMessageID, isCompleted } = imResponse.data; // 消息列表。
+        // const {nextReqMessageID} = imResponse.data; // 用于续拉，分页续拉时需传入该字段。
+        // const {isCompleted} = imResponse.data; // 表示是否已经拉完所有消息。isCompleted 为 true 时，nextReqMessageID 为 ""。
+        console.log('messageList', messageList);
+        console.log('nextReqMessageID', nextReqMessageID);
+        console.log('isCompleted', isCompleted);
+        this.nextReqMessageID = nextReqMessageID;
+        this.isCompleted = isCompleted;
+        this.messageList = messageList;
       });
     },
   },

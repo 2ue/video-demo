@@ -3,6 +3,7 @@
  * @Date: 2022-03-14 17:15:23
  * @LastEditTime: 2022-03-23 17:47:14
  */
+import { mapState } from 'vuex';
 import TRTC from 'trtc-js-sdk';
 import { isUndefined } from '@/utils/utils.js';
 
@@ -25,6 +26,11 @@ export default {
   },
 
   computed: {
+    ...mapState({
+      isOwner(state) {
+        return state.tim.groupOwnerId === this.userId;
+      },
+    }),
     streamList() {
       const streams = [];
       if (this.localStream) streams.push(this.localStream);
@@ -42,6 +48,11 @@ export default {
   },
   beforeCreate() {
     TRTC.Logger.setLogLevel(TRTC.Logger.LogLevel.NONE);
+  },
+  beforeDestroy() {
+    console.log('xxx===>', 111);
+    this.leave();
+    this.destroyCurrentStream();
   },
   methods: {
     // 初始化客户端
@@ -262,32 +273,40 @@ export default {
     },
 
     muteVideo() {
-      if (this.localStream) {
-        this.localStream.muteVideo();
+      const stream = this.currentStream;
+      if (!this.isOwner && stream.getUserId() !== this.userId) return;
+      if (stream) {
+        stream.muteVideo();
         this.isMutedVideo = true;
         this.addSuccessLog('LocalStream muted video.');
       }
     },
 
     muteAudio() {
-      if (this.localStream) {
-        this.localStream.muteAudio();
+      const stream = this.currentStream;
+      if (!this.isOwner && stream.getUserId() !== this.userId) return;
+      if (stream) {
+        stream.muteAudio();
         this.isMutedAudio = true;
         this.addSuccessLog('LocalStream muted audio.');
       }
     },
 
     unmuteVideo() {
-      if (this.localStream) {
-        this.localStream.unmuteVideo();
+      const stream = this.currentStream;
+      if (!this.isOwner && stream.getUserId() !== this.userId) return;
+      if (stream) {
+        stream.unmuteVideo();
         this.isMutedVideo = false;
         this.addSuccessLog('LocalStream unmuted video.');
       }
     },
 
     unmuteAudio() {
-      if (this.localStream) {
-        this.localStream.unmuteAudio();
+      const stream = this.currentStream;
+      if (!this.isOwner && stream.getUserId() !== this.userId) return;
+      if (stream) {
+        stream.unmuteAudio();
         this.isMutedAudio = false;
         this.addSuccessLog('LocalStream unmuted audio.');
       }

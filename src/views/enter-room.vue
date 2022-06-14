@@ -25,6 +25,7 @@
 <script>
 import compNav from '@/components/comp-nav.vue';
 import roomLink from  '@/components/mixins/room-link';
+import { genUserId } from '@/utils/utils';
 export default {
   components: { compNav },
   mixins: [roomLink],
@@ -41,7 +42,7 @@ export default {
   },
   methods: {
     genUserId() {
-      this.form.userId = `user_${parseInt(Math.random() * 100000000, 10)}`;
+      this.form.userId = genUserId('user');
     },
     goBack() {
       this.$router.go(-1);
@@ -54,6 +55,7 @@ export default {
       }
       const link = this.generateRoomLink({
         roomId: this.form.roomId,
+        userId: this.form.userId,
       }, 'room');
       window.location.href = link;
     },

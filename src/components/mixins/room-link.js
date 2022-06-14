@@ -1,23 +1,16 @@
 import LibGenerateTestUserSig from '@/utils/lib-generate-test-usersig.min.js';
-import { mapState } from 'vuex';
 export default {
-  computed: {
-    ...mapState({
-      sdkAppId: state => state.sdkAppId,
-      roomId: state => state.roomId,
-      secretKey: state => state.secretKey,
-      userId: state => state.userId,
-    }),
-  },
   methods: {
     generateRoomLink({ userId, roomId }, routePath) {
-      const { sdkAppId, secretKey, roomId: rId, userId: uId } = this;
-      const _uId = userId || uId;
+      const { sdkAppId, secretKey } = this.$store.state;
+      // eslint-disable-next-line no-underscore-dangle
+      const _rId = roomId || this.$store.state.roomId;
+      // eslint-disable-next-line no-underscore-dangle
+      const _uId = userId;
       if (!_uId) {
         this.$alert('userId缺失');
         return;
       }
-      const _rId = roomId || rId;
       if (!_rId) {
         this.$alert('会议ID缺失');
         return;

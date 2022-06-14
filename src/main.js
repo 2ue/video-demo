@@ -3,8 +3,8 @@
  * @Date: 2022-03-09 16:42:16
  * @LastEditTime: 2022-03-29 16:36:04
  */
+import './utils/store';
 import Vue from 'vue';
-import 'local-storage-js';
 import App from './App.vue';
 
 import '@/utils/aegis.js';
@@ -73,6 +73,7 @@ Vue.use(Row);
 Vue.prototype.$alert = MessageBox.alert;
 Vue.prototype.$message = new DonMessage();
 Vue.prototype.$isMobile = isMobile;
+console.log('window.store===>', window.store);
 Vue.prototype.$localstorage = window.store;
 
 Vue.config.productionTip = false;

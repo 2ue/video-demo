@@ -47,3 +47,16 @@ export function getLanguage() {
  * 当前浏览器是否为移动端浏览器
  */
 export const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+/**
+ * userId
+ * */
+export function genUserId() {
+  return `user_${parseInt(Math.random() * 100000000, 10)}`;
+}
+/**
+ * 随机房号和userId
+ * */
+export function genRoomId() {
+  return parseInt(Math.random() * 100000000, 10);
+}

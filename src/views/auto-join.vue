@@ -48,7 +48,7 @@ export default {
   created() {
     this.sdkAppId = Number(getUrlParam('sdkAppId'));
     this.userSig = getUrlParam('userSig');
-    this.userId = getUrlParam('userId');
+    this.userId = this.$store.state.userId;
     this.roomId = Number(getUrlParam('roomId'));
     console.log('xxxx===>', this.sdkAppId, this.userSig, this.userId, this.roomId);
     // clearUrlParam();

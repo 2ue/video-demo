@@ -14,12 +14,10 @@
           type="primary"
           size="small" :disabled="isJoining || isJoined" @click="handleJoinRoom">{{ $t('Join Room') }}</el-button>
         <el-button
-          v-if="isHostMode"
           class="button"
           type="primary"
           size="small" :disabled="isPublishing || isPublished" @click="handlePublish">{{ $t('Publish') }}</el-button>
         <el-button
-          v-if="isHostMode"
           class="button"
           type="primary" size="small" @click="handleUnpublish">{{ $t('Unpublish') }}</el-button>
         <el-button
@@ -113,11 +111,18 @@
     </div>
     <div v-if="isJoined" class="stream-toolbar">
       <el-button
+        v-if="!sharing"
         class="button"
         type="primary"
         size="small"
         :disabled="hasShare"
-        @click="remoteShare">{{ sharing ? '结束演示' : '演示'}}</el-button>
+        @click="remoteShare">演示</el-button>
+      <el-button
+        v-if="sharing"
+        class="button"
+        type="primary"
+        size="small"
+        @click="remoteShare">结束演示</el-button>
 <!--      <el-button-->
 <!--        class="button"-->
 <!--        type="primary"-->
@@ -129,7 +134,7 @@
     <div v-if="showInviteLink" class="invite-link-container">
       <span v-if="isEnLang">Copy the link to invite friends to join the video call, one link can invite only one person,
         the link will be updated automatically after copying.</span>
-      <span v-else>复制链接邀请好友加入视频通话，一条链接仅可邀请一人，复制后自动更新链接。</span>
+      <span v-else>复制链接邀请好友加入会议。</span>
 <!--      <a :href="inviteLink" target="_blank">-->
 <!--        <i class="el-icon-link"></i>-->
 <!--      </a>-->
@@ -149,6 +154,7 @@
         </template>
       </el-input>
     </div>
+    <im-com v-if="sdkIsReady"></im-com>
   </div>
 </template>
 
@@ -156,11 +162,16 @@
 import rtc from './mixins/rtc2.js';
 import tim from './mixins/tim.js';
 import shareRtc from  './mixins/share-rtc.js';
+import roomLink from './mixins/room-link';
 import LibGenerateTestUserSig from '@/utils/lib-generate-test-usersig.min.js';
+import ImCom from './im';
 
 export default {
   name: 'compRoom',
-  mixins: [rtc, shareRtc, tim],
+  components: {
+    ImCom,
+  },
+  mixins: [rtc, shareRtc, tim, roomLink],
   props: {
     type: String,
     sdkAppId: Number,
@@ -203,6 +214,9 @@ export default {
       console.log('this.streamList.find(stream => stream.getUserId().includes(\'share_\'))===>', this.streamList.find(stream => stream.getUserId().includes('share_')));
       return !!(this.streamList.find(stream => stream.getUserId().includes('share_')) || '');
     },
+    groupInfo() {
+      return this.$store.state.tim.group;
+    },
   },
   watch: {
     cameraId(val) {
@@ -225,6 +239,7 @@ export default {
       return !stream.hasAudio();
     },
     changeVideo(stream) {
+      if (!this.isOwner && stream.getUserId() !== this.userId) return;
       if (stream.hasVideo()) {
         stream.muteVideo();
       } else {
@@ -232,6 +247,7 @@ export default {
       }
     },
     changeAudio(stream) {
+      if (!this.isOwner && stream.getUserId() !== this.userId) return;
       if (this.isMuteAudioTrack(stream)) {
         stream.unmuteAudio();
       } else {
@@ -239,14 +255,10 @@ export default {
       }
     },
     generateInviteLink() {
-      // if (!this.isHostMode) {
-      //   return;
-      // }
-      const { sdkAppId, secretKey, roomId } = this;
-      const inviteUserId = `user_${parseInt(Math.random() * 100000000, 10)}`;
-      const userSigGenerator = new LibGenerateTestUserSig(sdkAppId, secretKey, 604800);
-      const inviteUserSig = userSigGenerator.genTestUserSig(inviteUserId);
-      this.inviteLink = encodeURI(`${location.origin}${location.pathname}#/invite?sdkAppId=${sdkAppId}&userSig=${inviteUserSig}&roomId=${roomId}&userId=${inviteUserId}`);
+      this.inviteLink = this.generateRoomLink({
+        roomId: this.roomId,
+        userId: 'xxxx',
+      }, 'room');
     },
     handleCopyInviteLink() {
       navigator.clipboard.writeText(this.inviteLink);
@@ -254,7 +266,7 @@ export default {
       setTimeout(() => {
         this.showCopiedTip = false;
       }, 1500);
-      this.generateInviteLink();
+      // this.generateInviteLink();
     },
     autoJoin() {},
     // 点击【Join Room】按钮
@@ -329,6 +341,7 @@ export default {
         type: 'success',
         log,
       });
+      this.sendMessage(log);
       // const { scrollHeight } = this.$refs.logContainer;
       // this.$refs.logContainer.scrollTop = scrollHeight;
     },
