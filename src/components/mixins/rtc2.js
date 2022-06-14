@@ -6,6 +6,7 @@
 import { mapState } from 'vuex';
 import TRTC from 'trtc-js-sdk';
 import { isUndefined } from '@/utils/utils.js';
+import { MessageBox } from 'element-ui';
 
 export default {
   data() {
@@ -28,7 +29,7 @@ export default {
   computed: {
     ...mapState({
       isOwner(state) {
-        return state.tim.groupOwnerId === this.userId;
+        return state.tim.groupOwnerId === this.userId || this.groupInfo?.groupProfile?.selfInfo?.userID === this.userId;
       },
     }),
     streamList() {
@@ -66,7 +67,17 @@ export default {
       });
       this.addSuccessLog(`Client [${this.userId}] created.`);
       this.handleClientEvents();
-      this.initTIM();
+      if (this.roomId && this.groupId) {
+        this.$store.dispatch('remoteStore/updateRemoteStore', {
+          roomId: this.roomId,
+        });
+      }
+      console.log('this.roomId===>', this.roomId);
+      this.$store.state.remoteStore.persistence.get(`yf_${this.roomId}`).then((res) => {
+        this.$store.commit('tim/updateGroupId', res.data?.groupId);
+        console.log('this.roomIdthis.roomI==>', this.roomId);
+        this.initTIM(this.roomId);
+      });
     },
 
     async initLocalStream() {
@@ -363,11 +374,37 @@ export default {
       this.client.on('peer-join', (event) => {
         const { userId } = event;
         console.log(`peer-join ${userId}`, event);
+        // if (this.userId === userId) return;
+        // setTimeout(() => {
+        //   this.sendNotice({
+        //     groupId: this.groupId,
+        //     userId,
+        //   });
+        // }, 4000);
       });
       // fired when a remote peer is leaving the room
       this.client.on('peer-leave', (event) => {
         const { userId } = event;
         console.log(`peer-leave ${userId}`, event);
+        const _this = this;
+        if (this.$store.state.tim.groupOwnerId === userId) {
+          MessageBox('会议已结束', '提示', {
+            confirmButtonText: '确定',
+            showCancelButtonText: false,
+            showClose: false,
+            type: 'warning',
+            beforeClose() {
+              _this.leaveRoom();
+              _this.dismissGroup(_this.roomId);
+            },
+          }).then(() => {
+            this.leaveRoom();
+            this.dismissGroup(this.roomId);
+          }).catch(() => {
+            this.leaveRoom();
+            this.dismissGroup(this.roomId);
+          });
+        }
       });
 
       // fired when a remote stream is added

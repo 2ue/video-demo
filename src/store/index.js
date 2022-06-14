@@ -5,6 +5,7 @@ import mutations from './mutations';
 import getters from './getters';
 import state from './state';
 import tim from './module/tim';
+import remoteStore from './module/remoteStore';
 
 Vue.use(Vuex);
 
@@ -15,5 +16,6 @@ export default new Vuex.Store({
   state,
   modules: {
     tim,
+    remoteStore,
   },
 });

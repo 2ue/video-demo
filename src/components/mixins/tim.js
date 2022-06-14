@@ -4,12 +4,15 @@ import { mapState } from 'vuex';
 
 const GROUP_TYPE = TIM.TYPES.GRP_MEETING;
 
+// let timer = null;
+
 export default {
   data() {
     return {
       nextReqMessageID: null,
       isCompleted: false,
-      messageList: [],
+      isCreating: false,
+      roomId2: '',
     };
   },
   computed: {
@@ -23,8 +26,9 @@ export default {
       immediate: true,
       handler(value) {
         if (value) {
-          // console.log('watch SDK===>', value, this.groupId);
-          if (!this.groupId) {
+          console.log('watch SDK===>', value, this.groupId, this.isCreating);
+          if (!this.groupId && !this.isCreating) {
+            console.log('start ===createGroup');
             this.createGroup();
           } else {
             this.joinGroup(this.groupId);
@@ -34,7 +38,9 @@ export default {
     },
   },
   methods: {
-    initTIM() {
+    initTIM(roomId) {
+      this.roomId2 = roomId;
+      console.log('xxx roomID==>', roomId);
       this.login();
       this.initTIMEvents();
     },
@@ -71,6 +77,8 @@ export default {
     },
     messageReceived(event) {
       console.log('TIM.EVENT.MESSAGE_RECEIVED', event);
+      const list = event.data.filter(d => !d.payload?.notice && d.conversationID.replace(d.type, '') === this.groupId);
+      this.$store.commit('tim/updateMessageList', list);
     },
     async login() {
       await window.$tim.login({
@@ -79,18 +87,26 @@ export default {
       });
     },
     logout() {},
-    createGroup() {
+    async createGroup() {
+      // eslint-disable-next-line no-debugger
+      console.log('====>', this.isCreating, this.sdkNotReady, this.roomId, this.roomId);
+      if (!this.sdkIsReady) return;
+      this.isCreating = true;
       const promise = window.$tim.createGroup({
         type: GROUP_TYPE,
         name: 'MEETING',
       });
-      promise.then((imResponse) => { // 创建成功
+      await promise.then((imResponse) => { // 创建成功
         const group = imResponse?.data?.group || {};
         console.log('create group', group); // 创建的群的资料
         this.$store.commit('tim/updateGroupId', group.groupID);
+        this.$store.dispatch('remoteStore/updateRemoteStore', {
+          roomId: this.roomId2,
+        });
       }).catch((imError) => {
         console.warn('createGroup error:', imError); // 创建群组失败的相关信息
       });
+      this.isCreating = false;
     },
     joinGroup() {
       const promise = window.$tim.joinGroup({ groupID: this.groupId, type: GROUP_TYPE });
@@ -110,18 +126,20 @@ export default {
         console.warn('joinGroup error:', imError); // 申请加群失败的相关信息
       });
     },
-    dismissGroup() {
+    dismissGroup(roomId) {
       const promise = window.$tim.dismissGroup(this.groupId);
       promise.then((imResponse) => { // 解散成功
         console.log(imResponse.data.groupID); // 被解散的群组 ID
       }).catch((imError) => {
         console.warn('dismissGroup error:', imError); // 解散群组失败的相关信息
       });
+      this.$store.state.remoteStore.persistence.set(`yf_${roomId}`, { status: 'off' });
     },
     quitGroup() {
       const promise = window.$tim.quitGroup(this.groupId);
       promise.then((imResponse) => { // 退出成功
         console.log(imResponse.data.groupID);
+        this.$localstorage.removeItem('groupId');
       }).catch((imError) => {
         console.warn('quitGroup error:', imError);
       });
@@ -130,7 +148,7 @@ export default {
       console.log('sendMessage', text);
       const message = window.$tim.createTextMessage({
         to: this.groupId,
-        conversationType: 'GROUP',
+        conversationType: TIM.TYPES.CONV_GROUP,
         payload: {
           text,
         },
@@ -138,7 +156,7 @@ export default {
       window.$tim.sendMessage(message).then((res) => {
         console.log(res);
         if (res.code === 0) {
-          this.messageList.push(res.data.message);
+          this.$store.commit('tim/updateMessageList', [res.data.message]);
         } else {
           this.$alert('发送失败', '提示');
         }
@@ -150,12 +168,34 @@ export default {
         const { messageList, nextReqMessageID, isCompleted } = imResponse.data; // 消息列表。
         // const {nextReqMessageID} = imResponse.data; // 用于续拉，分页续拉时需传入该字段。
         // const {isCompleted} = imResponse.data; // 表示是否已经拉完所有消息。isCompleted 为 true 时，nextReqMessageID 为 ""。
-        console.log('messageList', messageList);
-        console.log('nextReqMessageID', nextReqMessageID);
-        console.log('isCompleted', isCompleted);
+        // console.log('messageList', messageList);
+        // console.log('nextReqMessageID', nextReqMessageID);
+        // console.log('isCompleted', isCompleted);
         this.nextReqMessageID = nextReqMessageID;
         this.isCompleted = isCompleted;
-        this.messageList = messageList;
+        this.$store.commit('tim/setMessageList', messageList);
+      });
+    },
+    sendNotice(value) {
+      // console.log('===>', value, this.groupId);
+      const message = window.$tim.createCustomMessage({
+        to: this.groupId,
+        conversationType: TIM.TYPES.CONV_GROUP,
+        // 消息优先级，用于群聊（v2.4.2起支持）。如果某个群的消息超过了频率限制，后台会优先下发高优先级的消息，详细请参考：https://cloud.tencent.com/document/product/269/3663#.E6.B6.88.E6.81.AF.E4.BC.98.E5.85.88.E7.BA.A7.E4.B8.8E.E9.A2.91.E7.8E.87.E6.8E.A7.E5.88.B6)
+        // 支持的枚举值：TIM.TYPES.MSG_PRIORITY_HIGH, TIM.TYPES.MSG_PRIORITY_NORMAL（默认）, TIM.TYPES.MSG_PRIORITY_LOW, TIM.TYPES.MSG_PRIORITY_LOWEST
+        // priority: TIM.TYPES.MSG_PRIORITY_HIGH,
+        payload: {
+          notice: true,
+          ...value,
+        },
+      });
+      const promise = window.$tim.sendMessage(message);
+      promise.then((imResponse) => {
+        // 发送成功
+        console.log(imResponse);
+      }).catch((imError) => {
+        // 发送失败
+        console.warn('sendMessage error:', imError);
       });
     },
   },

@@ -1,18 +1,19 @@
-const localstorage = window.store;
+// const localstorage = window.store;
 
 export default {
   namespaced: true,
   state: {
     sdkIsReady: false,
-    groupId: localstorage.getItem('groupId') || '',
+    groupId: '',
     group: {},
     groupOwnerId: '',
+    messageList: [],
   },
   mutations: {
     updateGroupId(state, value) {
       state.groupId = value;
       console.log('xxx updateGroupId===>', value);
-      localstorage.setItem('groupId', value);
+      // localstorage.setItem('groupId', value);
     },
     updateSdkIsReady(state, value) {
       console.log('xxx updateSdkIsReady===>', value);
@@ -22,6 +23,14 @@ export default {
       console.log('xxx updateGroupInfo===>', value);
       state.group = value;
       state.groupOwnerId = value?.groupProfile?.ownerID || '';
+    },
+    setMessageList(state, value) {
+      state.messageList = value;
+    },
+    updateMessageList(state, value) {
+      console.log('xxxxxeeupdate===>', JSON.parse(JSON.stringify(state.messageList)));
+      state.messageList.push(...value);
+      console.log('xxxxxeeupdate===>', JSON.parse(JSON.stringify(state.messageList)));
     },
   },
 };

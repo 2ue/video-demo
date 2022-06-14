@@ -2,7 +2,7 @@
   <div class="invite-container">
     <comp-nav></comp-nav>
     <div
-      v-if="sdkAppId" class="content" :class="$isMobile && 'content-mobile'">
+      v-if="sdkAppId && Number(roomId)" class="content" :class="$isMobile && 'content-mobile'">
       <!-- rtc 房间 -->
       <comp-room
         ref="room"

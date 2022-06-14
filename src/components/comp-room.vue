@@ -123,6 +123,16 @@
         type="primary"
         size="small"
         @click="remoteShare">结束演示</el-button>
+      <el-button
+        class="button"
+        type="primary"
+        size="small"
+        @click="leaveRoom">离开会议</el-button>
+      <el-button
+        class="button"
+        type="danger"
+        size="small"
+        @click="overRoom">结束会议</el-button>
 <!--      <el-button-->
 <!--        class="button"-->
 <!--        type="primary"-->
@@ -159,6 +169,7 @@
 </template>
 
 <script>
+import { MessageBox } from 'element-ui';
 import rtc from './mixins/rtc2.js';
 import tim from './mixins/tim.js';
 import shareRtc from  './mixins/share-rtc.js';
@@ -171,7 +182,7 @@ export default {
   components: {
     ImCom,
   },
-  mixins: [rtc, shareRtc, tim, roomLink],
+  mixins: [tim, rtc, shareRtc, roomLink],
   props: {
     type: String,
     sdkAppId: Number,
@@ -380,6 +391,25 @@ export default {
       } else {
         this.handleStartScreenShare();
       }
+    },
+    leaveRoom() {
+      this.leave();
+      this.destroyCurrentStream();
+      // this.destroyShareLocalStream();
+      // this.destroyStream();
+      // this.quitGroup();
+      this.$localstorage.removeItem('groupId');
+      this.$router.push('/');
+    },
+    overRoom() {
+      MessageBox('确认结束会议?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }).then(() => {
+        this.leaveRoom();
+        this.dismissGroup(this.roomId);
+      });
     },
   },
 };

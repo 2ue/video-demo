@@ -1,7 +1,7 @@
 <template>
   <div class="tim-container">
     <div ref="messages" class="message-list">
-      <div v-for="message in messageItems" :key="message.sequence" class="message-item">
+      <div v-for="message in messageList" :key="message.sequence" class="message-item">
         <el-row>
           <el-col :span="3">
             <div class="avatar-container">
@@ -16,16 +16,18 @@
         </el-row>
       </div>
     </div>
-    <div style="margin-bottom: 200px">
+    <div style="padding-bottom: 100px">
       <el-input v-model="messageText" type="textarea" name="" id="" cols="20" rows="8"></el-input>
     </div>
     <div style="position: fixed;width: 100%;bottom: 0;left: 0;padding: 20px 10%;background: #fff">
       <el-button type="primary" @click="send">发送</el-button>
+      <span style="font-size: 12px;color: #999;margin-left: 20px;">点击此处发送消息</span>
     </div>
   </div>
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import tim from './mixins/tim';
 import dayjs from 'dayjs';
 
@@ -50,17 +52,24 @@ export default {
     };
   },
   computed: {
-    messageItems() {
-      // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-      return this.messageList.sort((m1, m2) => m1.sequence - m2.sequence);
-    },
+    ...mapState({
+      messageList: state => state.tim.messageList.sort((m1, m2) => m1.sequence - m2.sequence),
+    }),
+    // messageItems() {
+    //   console.log('xxxxxx333333==>', this.messageList);
+    //   // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+    //   return this.messageList.sort((m1, m2) => m1.sequence - m2.sequence);
+    // },
   },
   created() {
     // this.messageList = this.getMessageList();
-    this.getMessageList();
   },
   mounted() {
+    this.getMessageList();
     this.scrollToBottom();
+  },
+  beforeDestroy() {
+    this.$store.commit('tim/setMessageList', []);
   },
   methods: {
     scrollToBottom(scrollHeight) {
