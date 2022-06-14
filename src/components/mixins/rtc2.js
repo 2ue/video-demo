@@ -28,10 +28,13 @@ export default {
 
   computed: {
     ...mapState({
-      isOwner(state) {
-        return state.tim.groupOwnerId === this.userId || this.groupInfo?.groupProfile?.selfInfo?.userID === this.userId;
+      groupOwnerId(state) {
+        return state.tim.groupOwnerId || this.groupInfo?.groupProfile?.selfInfo?.userID;
       },
     }),
+    isOwner() {
+      return this.groupOwnerId === this.userId;
+    },
     streamList() {
       const streams = [];
       if (this.localStream) streams.push(this.localStream);
@@ -387,7 +390,8 @@ export default {
         const { userId } = event;
         console.log(`peer-leave ${userId}`, event);
         const _this = this;
-        if (this.$store.state.tim.groupOwnerId === userId) {
+        console.log('this.$store.state.tim.groupOwnerId===>', this.groupOwnerId, userId);
+        if (this.groupOwnerId === userId) {
           MessageBox('会议已结束', '提示', {
             confirmButtonText: '确定',
             showCancelButtonText: false,

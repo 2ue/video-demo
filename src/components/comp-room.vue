@@ -129,6 +129,7 @@
         size="small"
         @click="leaveRoom">离开会议</el-button>
       <el-button
+        v-if="isOwner"
         class="button"
         type="danger"
         size="small"
