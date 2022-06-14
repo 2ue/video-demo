@@ -73,7 +73,7 @@ export default {
   .content {
     width: 80%;
     margin: 0 auto;
-    max-width: 1320px;
+    //max-width: 1320px;
     .alert {
       padding-top: 20px;
       font-size: 16px !important;

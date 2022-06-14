@@ -71,7 +71,7 @@ export default {
  .content {
     width: 80%;
     margin: 0 auto;
-    max-width: 1320px;
+    //max-width: 1320px;
     padding-top: 30px;
     &.content-mobile {
       width: 100%;

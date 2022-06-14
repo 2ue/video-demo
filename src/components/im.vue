@@ -1,5 +1,6 @@
 <template>
   <div class="tim-container">
+    <p style="margin-bottom: 10px">聊天室</p>
     <div ref="messages" class="message-list">
       <div v-for="message in messageList" :key="message.sequence" class="message-item">
         <el-row>
@@ -19,7 +20,7 @@
     <div style="padding-bottom: 100px">
       <el-input v-model="messageText" type="textarea" name="" id="" cols="20" rows="8"></el-input>
     </div>
-    <div style="position: fixed;width: 100%;bottom: 0;left: 0;padding: 20px 10%;background: #fff">
+    <div style="position: fixed;width: 80%; max-width: 1320px;bottom: 0;left: 0;margin: 0 10%; padding: 20px 0;background: #fff">
       <el-button type="primary" @click="send">发送</el-button>
       <span style="font-size: 12px;color: #999;margin-left: 20px;">点击此处发送消息</span>
     </div>
