@@ -4,7 +4,7 @@ import actions from './actions';
 import mutations from './mutations';
 import getters from './getters';
 import state from './state';
-import im from './module/im';
+import tim from './module/tim';
 
 Vue.use(Vuex);
 
@@ -14,6 +14,6 @@ export default new Vuex.Store({
   getters,
   state,
   modules: {
-    im,
+    tim,
   },
 });

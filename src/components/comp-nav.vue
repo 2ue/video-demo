@@ -13,14 +13,16 @@
       <span class="language" @click="toggleLanguage">
         <svg-icon icon-name="language"></svg-icon>
       </span>
-      <span class="github" @click="goToGithub">
+      <div class="github" @click="goToGithub">
         <svg-icon icon-name="github" className="github-svg"></svg-icon>
-      </span>
+        <p><span>{{ userId }}</span></p>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+import { mapState } from 'vuex';
 export default {
   name: 'navContainer',
   data() {
@@ -28,6 +30,9 @@ export default {
     };
   },
   computed: {
+    ...mapState({
+      userId: state => state.userId,
+    }),
     isZhLang() {
       return this.$i18n.locale === 'zh';
     },
@@ -65,7 +70,7 @@ export default {
 <style lang="scss" scoped>
 .nav-container{
   width: 100%;
-  height: 60px;
+  height: 70px;
   padding: 10px 10px;
   background-color: #00182F;
   display: flex;
@@ -73,11 +78,11 @@ export default {
   color: #ffffff;
   align-items: center;
   .right-region {
-    height: 100%;
+    height: 60px;
     display: flex;
     align-items: center;
     .logo {
-      height: 100%;
+      height: 60px;
     }
     .logo-mobile {
       height: 30px;
@@ -88,12 +93,14 @@ export default {
     display: flex;
     align-items: center;
     cursor: pointer;
+    text-align: center;
     .github {
       margin-left: 20px;
+      margin-right: 10px;
       cursor: pointer;
       .github-svg {
-        width: 40px;
-        height: 40px;
+        width: 30px;
+        height: 30px;
       }
     }
   }

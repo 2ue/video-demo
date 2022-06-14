@@ -18,7 +18,7 @@ export default {
 
   computed: {
     shareUserId()  {
-      return `share_${this.userId}`;
+      return this.userId.replace('user_', 'share_');
     },
     shareUserSig() {
       if (this.sdkAppId && this.secretKey && this.shareUserId) {
@@ -33,7 +33,7 @@ export default {
     // 初始化屏幕分享 client
     initShareClient() {
       this.shareClient = TRTC.createClient({
-        mode: 'rtc',
+        mode: 'live',
         sdkAppId: this.sdkAppId,
         userId: this.shareUserId,
         userSig: this.shareUserSig,

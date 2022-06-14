@@ -34,13 +34,15 @@ export default {
       if (currentStreamId) streamIds.push(currentStreamId);
       return streams.filter((stream) => {
         const streamId = stream.getId();
-        if (streamIds.includes(streamId)) return false;
+        if (isUndefined(streamId) || streamIds.includes(streamId)) return false;
         streamIds.push(streamId);
         return true;
       });
     },
   },
-
+  beforeCreate() {
+    TRTC.Logger.setLogLevel(TRTC.Logger.LogLevel.NONE);
+  },
   methods: {
     // 初始化客户端
     async initClient() {
@@ -53,6 +55,7 @@ export default {
       });
       this.addSuccessLog(`Client [${this.userId}] created.`);
       this.handleClientEvents();
+      this.initTIM();
     },
 
     async initLocalStream() {
@@ -76,9 +79,9 @@ export default {
       }
     },
 
-    playStream(stream, element) {
+    playStream(stream) {
       if (stream) {
-        stream.play(element)
+        stream.play(stream.getUserId())
           .then(() => {
             this.hasCurrentStream = true;
             this.addSuccessLog(`${stream.getUserId()}: stream[${stream.getId()}] play success`);
@@ -240,15 +243,19 @@ export default {
       }
     },
 
-    checkStream(stream, element) {
+    checkStream(stream) {
+      if (!stream.hasVideo()) {
+        alert('暂无视频流');
+        return;
+      }
       const oldStreamUserId = this.currentStream.getUserId();
-      this.destroyStream(this.currentStream);
-      this.destroyStream(stream);
+      // 停止流的播放
+      this.currentStream && this.currentStream.stop();
+      stream && stream.stop();
       this.$nextTick(() => {
         this.currentStream = stream;
         setTimeout(() => {
-          console.log('oldStream===>', oldStreamUserId);
-          this.playStream(stream, element);
+          this.playStream(stream, stream.getUserId());
           this.playStream(this.streamList.find(s => s.getUserId() === oldStreamUserId), oldStreamUserId);
         }, 6);
       });
@@ -302,8 +309,14 @@ export default {
       // 文档：https://web.sdk.qcloud.com/trtc/webrtc/doc/zh-cn/module-ClientEvent.html#.AUDIO_VOLUME
       this.client.on('audio-volume', (event) => {
         event.result.forEach(({ userId, audioVolume }) => {
+          const dom = document.getElementById(userId);
+          if (!dom) return;
+          const className = dom.className || '';
           if (audioVolume > 2) {
-            console.log(`user: ${userId} is speaking, audioVolume: ${audioVolume}`);
+            // console.log(`user: ${userId} is speaking, audioVolume: ${audioVolume}`);
+            if (!className.includes('is-speaking')) dom.className = `${className} is-speaking`;
+          } else {
+            if (className.includes('is-speaking')) dom.className = `${className.replace(' is-speaking', '') || ''}`;
           }
         });
       });

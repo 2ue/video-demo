@@ -4,6 +4,7 @@
  * @LastEditTime: 2022-03-29 16:36:04
  */
 import Vue from 'vue';
+import 'local-storage-js';
 import App from './App.vue';
 
 import '@/utils/aegis.js';
@@ -12,6 +13,7 @@ import '@/assets/style/global.css';
 import '@/assets/icons';
 import '@/assets/style/theme/index.css';
 import { isMobile } from '@/utils/utils';
+import tim from '@/utils/tim';
 import store from './store';
 
 import {
@@ -25,6 +27,10 @@ import {
   MessageBox,
   Tooltip,
   Alert,
+  Form,
+  FormItem,
+  Row,
+  Col,
 } from 'element-ui';
 
 import router from './router';
@@ -51,7 +57,7 @@ class DonMessage {
     Message[type](options);
   }
 }
-
+Vue.use(tim);
 Vue.use(Collapse);
 Vue.use(CollapseItem);
 Vue.use(Select);
@@ -60,9 +66,14 @@ Vue.use(Input);
 Vue.use(Button);
 Vue.use(Tooltip);
 Vue.use(Alert);
+Vue.use(Form);
+Vue.use(FormItem);
+Vue.use(Col);
+Vue.use(Row);
 Vue.prototype.$alert = MessageBox.alert;
 Vue.prototype.$message = new DonMessage();
 Vue.prototype.$isMobile = isMobile;
+Vue.prototype.$localstorage = window.store;
 
 Vue.config.productionTip = false;
 

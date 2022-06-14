@@ -5,8 +5,9 @@
 -->
 <template>
   <div class="rtc-container">
+    <p>会议ID：{{ roomId }}</p>
     <!-- 进房操作区域 -->
-    <div class="control-container">
+    <div v-if="!manualEnter" class="control-container">
       <div class="rtc-control-container">
         <el-button
           class="button"
@@ -25,52 +26,30 @@
           class="button"
           type="primary" size="small" @click="handleLeave">{{ $t('Leave Room') }}</el-button>
       </div>
-      <div v-if="isHostMode" class="screen-share-control-container">
-        <el-button
-          class="button"
-          type="primary"
-          size="small"
-          :disabled="isShareJoined && isSharePublished"
-          @click="handleStartScreenShare">{{ $t('Start Screen Share') }}</el-button>
-        <el-button
-          class="button"
-          type="primary" size="small" @click="handleStopScreenShare">{{ $t('Stop Screen Share') }}</el-button>
-      </div>
+<!--      <div v-if="isHostMode" class="screen-share-control-container">-->
+<!--        <el-button-->
+<!--          class="button"-->
+<!--          type="primary"-->
+<!--          size="small"-->
+<!--          :disabled="isShareJoined && isSharePublished"-->
+<!--          @click="handleStartScreenShare">{{ $t('Start Screen Share') }}</el-button>-->
+<!--        <el-button-->
+<!--          class="button"-->
+<!--          type="primary" size="small" @click="handleStopScreenShare">{{ $t('Stop Screen Share') }}</el-button>-->
+<!--      </div>-->
     </div>
 
-    <!-- 显示邀请链接 -->
-    <div v-if="showInviteLink" class="invite-link-container">
-      <span v-if="isEnLang">Copy the link to invite friends to join the video call, one link can invite only one person,
-        the link will be updated automatically after copying.</span>
-      <span v-else>复制链接邀请好友加入视频通话，一条链接仅可邀请一人，复制后自动更新链接。</span>
-      <el-input class="invite-input" v-model="inviteLink">
-        <template slot="prepend">
-          <el-tooltip
-            :visibleArrow="false"
-            effect="dark"
-            content="Copied!"
-            placement="bottom"
-            :manual="true"
-            v-model="showCopiedTip">
-            <span class="invite-btn" @click="handleCopyInviteLink">
-              <svg-icon icon-name="copy"></svg-icon>
-            </span>
-          </el-tooltip>
-        </template>
-      </el-input>
-    </div>
-
-    <div class="info-container" :class="$isMobile && 'info-container-mobile'">
-      <!-- Log 展示区域 -->
-      <div v-if="isHostMode" class="log-container" ref="logContainer">
-        <p class="log-label">Log:</p>
-        <div v-for="(item, index) in logList" :key="index">
-          <span class="log-state" v-if="item.type === 'success'">🟩 </span>
-          <span class="log-state" v-if="item.type === 'failed'">🟥 </span>
-          <span>{{ item.log }}</span>
-        </div>
-      </div>
-    </div>
+<!--    <div class="info-container" :class="$isMobile && 'info-container-mobile'">-->
+<!--      &lt;!&ndash; Log 展示区域 &ndash;&gt;-->
+<!--      <div v-if="isHostMode" class="log-container" ref="logContainer">-->
+<!--        <p class="log-label">Log:</p>-->
+<!--        <div v-for="(item, index) in logList" :key="index">-->
+<!--          <span class="log-state" v-if="item.type === 'success'">🟩 </span>-->
+<!--          <span class="log-state" v-if="item.type === 'failed'">🟥 </span>-->
+<!--          <span>{{ item.log }}</span>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
 
     <div v-if="!noOne" class="stream-show">
       <!-- 本地流区域 -->
@@ -80,9 +59,12 @@
         :class="{'local-stream-container-only-one': onlyOne }"
       >
         <!-- 本地流播放区域 -->
-        <div id="currentStream" class="local-stream-content"></div>
+        <div :id="currentStream.getUserId()" class="local-stream-content"></div>
         <!-- 本地流操作栏 -->
         <div v-if="hasCurrentStream" class="local-stream-control">
+          <span class="user-id-local">
+            {{ currentStream.getUserId() }}
+          </span>
           <div class="video-control control">
             <span v-if="!isMutedVideo" @click="muteVideo">
               <svg-icon icon-name="video" class="icon-class"></svg-icon>
@@ -109,31 +91,76 @@
           :key="item.getUserId()"
           :id="item.getUserId()"
           class="remote-stream-container"
-          @dblclick="checkStream(item, 'currentStream')">
-          <span style="font-size: 12px">
-            {{ item.getUserId() }}
-          </span>
+          :class="{'remote-stream-container-mute': !item.hasVideo() || isMuteAudioTrack(item) }"
+          @dblclick="checkStream(item)">
+          <div class="local-stream-control">
+            <span class="user-id-local">
+              {{ item.getUserId() }}
+            </span>
+            <div class="video-control control">
+              <span @click="changeVideo(item)">
+                <svg-icon :icon-name="item.hasVideo() ? 'video' : 'video-muted'" class="icon-class"></svg-icon>
+              </span>
+            </div>
+            <div class="audio-control control">
+              <span @click="changeAudio(item)">
+                <svg-icon :icon-name="isMuteAudioTrack(item) ? 'audio-muted' : 'audio'" class="icon-class"></svg-icon>
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <div class="stream-toolbar">
+    <div v-if="isJoined" class="stream-toolbar">
       <el-button
         class="button"
         type="primary"
         size="small"
+        :disabled="hasShare"
         @click="remoteShare">{{ sharing ? '结束演示' : '演示'}}</el-button>
+<!--      <el-button-->
+<!--        class="button"-->
+<!--        type="primary"-->
+<!--        size="small"-->
+<!--        @click="inviteOne">分享会议</el-button>-->
+    </div>
+
+    <!-- 显示邀请链接 -->
+    <div v-if="showInviteLink" class="invite-link-container">
+      <span v-if="isEnLang">Copy the link to invite friends to join the video call, one link can invite only one person,
+        the link will be updated automatically after copying.</span>
+      <span v-else>复制链接邀请好友加入视频通话，一条链接仅可邀请一人，复制后自动更新链接。</span>
+<!--      <a :href="inviteLink" target="_blank">-->
+<!--        <i class="el-icon-link"></i>-->
+<!--      </a>-->
+      <el-input class="invite-input" v-model="inviteLink">
+        <template slot="prepend">
+          <el-tooltip
+            :visibleArrow="false"
+            effect="dark"
+            content="Copied!"
+            placement="bottom"
+            :manual="true"
+            v-model="showCopiedTip">
+            <span class="invite-btn" @click="handleCopyInviteLink">
+              <svg-icon icon-name="copy"></svg-icon>
+            </span>
+          </el-tooltip>
+        </template>
+      </el-input>
     </div>
   </div>
 </template>
 
 <script>
 import rtc from './mixins/rtc2.js';
+import tim from './mixins/tim.js';
 import shareRtc from  './mixins/share-rtc.js';
 import LibGenerateTestUserSig from '@/utils/lib-generate-test-usersig.min.js';
 
 export default {
   name: 'compRoom',
-  mixins: [rtc, shareRtc],
+  mixins: [rtc, shareRtc, tim],
   props: {
     type: String,
     sdkAppId: Number,
@@ -143,12 +170,14 @@ export default {
     cameraId: String,
     microphoneId: String,
     inviteUserSig: String,
+    manualEnter: Boolean,
   },
   data() {
     return {
       logList: [],
       inviteLink: '',
       showCopiedTip: false,
+      canShare: false,
     };
   },
   computed: {
@@ -159,7 +188,7 @@ export default {
       return this.$i18n.locale === 'en';
     },
     showInviteLink() {
-      return this.isHostMode && (this.isJoined || this.isShareJoined) && this.inviteLink;
+      return (this.isJoined || this.isShareJoined) && this.inviteLink;
     },
     sharing() {
       return this.isShareJoined && this.isSharePublished;
@@ -168,7 +197,11 @@ export default {
       return (this.remoteStreamList?.length || 0) === 0 && !this.localStream;
     },
     noOne() {
-      return this.onlyOne && !this.localStream;
+      return this.onlyOne || !this.currentStream;
+    },
+    hasShare() {
+      console.log('this.streamList.find(stream => stream.getUserId().includes(\'share_\'))===>', this.streamList.find(stream => stream.getUserId().includes('share_')));
+      return !!(this.streamList.find(stream => stream.getUserId().includes('share_')) || '');
     },
   },
   watch: {
@@ -179,11 +212,36 @@ export default {
       this.switchDevice('audio', val);
     },
   },
+  mounted() {
+    this.$emit('mounted');
+  },
   methods: {
-    generateInviteLink() {
-      if (!this.isHostMode) {
-        return;
+    inviteOne() {
+      this.canShare = true;
+      this.generateInviteLink();
+    },
+    isMuteAudioTrack(stream) {
+      if (stream.getUserId().includes('share_')) return false;
+      return !stream.hasAudio();
+    },
+    changeVideo(stream) {
+      if (stream.hasVideo()) {
+        stream.muteVideo();
+      } else {
+        stream.unmuteVideo();
       }
+    },
+    changeAudio(stream) {
+      if (this.isMuteAudioTrack(stream)) {
+        stream.unmuteAudio();
+      } else {
+        stream.muteAudio();
+      }
+    },
+    generateInviteLink() {
+      // if (!this.isHostMode) {
+      //   return;
+      // }
       const { sdkAppId, secretKey, roomId } = this;
       const inviteUserId = `user_${parseInt(Math.random() * 100000000, 10)}`;
       const userSigGenerator = new LibGenerateTestUserSig(sdkAppId, secretKey, 604800);
@@ -198,9 +256,11 @@ export default {
       }, 1500);
       this.generateInviteLink();
     },
+    autoJoin() {},
     // 点击【Join Room】按钮
-    async handleJoinRoom() {
-      if (this.isHostMode) {
+    async handleJoinRoom(type) {
+      console.log('yyyy==>', this.sdkAppId, this.secretKey, this.userId, this.roomId);
+      if (this.isHostMode || type === 'auto') {
         if (!this.sdkAppId || !this.secretKey) {
           alert(this.$t('Please enter sdkAppId and secretKey'));
           return;
@@ -221,7 +281,7 @@ export default {
       await this.initClient();
       await this.join();
       await this.initLocalStream();
-      await this.playStream(this.currentStream, 'currentStream');
+      await this.playStream(this.currentStream);
       await this.publish();
       this.generateInviteLink();
     },
@@ -269,8 +329,8 @@ export default {
         type: 'success',
         log,
       });
-      const { scrollHeight } = this.$refs.logContainer;
-      this.$refs.logContainer.scrollTop = scrollHeight;
+      // const { scrollHeight } = this.$refs.logContainer;
+      // this.$refs.logContainer.scrollTop = scrollHeight;
     },
 
     // 显示失败的 Log
@@ -391,35 +451,23 @@ export default {
   max-height: 640px;
   display: flex;
   border: 1px solid #000;
+  .is-speaking {
+    border-color: #00ff00 !important;
+  }
   .local-stream-container {
     width: 80%;
     position: relative;
+    .local-stream-control {
+      width: 100%;
+    }
     &.local-stream-container-only-one {
       width: 100%;
     }
     .local-stream-content {
       width: 100%;
       height: 100%;
-    }
-    .local-stream-control {
-      width: 100%;
-      height: 30px;
-      position: absolute;
-      bottom: 0;
-      background-color: rgba(0, 0, 0, 0.3);
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      padding: 0 10px;
-      .control {
-        margin-left: 10px;
-      }
-      .icon-class {
-        color: #fff;
-        cursor: pointer;
-        width: 20px;
-        height: 20px;
-      }
+      box-sizing: border-box;
+      border: 2px solid #fff;
     }
   }
   .remote-container {
@@ -430,19 +478,71 @@ export default {
     box-sizing: border-box;
     overflow-y: auto;
     .remote-stream-container {
+      position: relative;
       width: 100%;
-      //height: 240px;
       padding: 10px;
-      border-bottom: 1px solid #000;
       background: #c0c0c0;
+      box-sizing: border-box;
+      border: 2px solid #fff;
+      border-bottom: 1px solid #000;
+      margin-bottom: 1px;
     }
     video {
       border: 1px solid #00ff00;
     }
+    .remote-stream-container-mute {
+      position: relative;
+      min-height: 150px;
+      line-height: 150px;
+      width: 100%;
+      text-align: center;
+      background: #000000;
+    }
+    .stream-mute-video {
+      //position: absolute;
+      //right: 250px;
+      //bottom: 10px;
+    }
+    .stream-mute-audio {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+    }
+  }
+}
+
+.local-stream-control {
+  width: calc(100% - 20px);
+  height: 30px;
+  position: absolute;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 10px;
+  z-index: 99;
+  .control {
+    margin-left: 10px;
+  }
+  .icon-class {
+    color: #fff;
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
   }
 }
 .stream-toolbar {
   margin: 10px 0;
+}
+.user-id-local {
+  position: absolute;
+  font-size: 12px;
+  left: 10px;
+  top: 10px;
+  //z-index: 9999;
+  color: #fff;
+  font-weight: bold;
 }
 </style>
 

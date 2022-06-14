@@ -3,14 +3,14 @@
     <!-- 头部栏 -->
     <comp-nav></comp-nav>
     <div class="content" :class="$isMobile && 'content-mobile'">
-      <p style="margin-top: 20px">快速会议：随机会议ID和userId，并创建会议</p>
-      <el-row :gutter="20">
-        <el-col :span="24"><div class="grid-content">快速会议</div></el-col>
-      </el-row>
-      <p>加入会议：手动输入会议ID和userID，如果会议ID不存在，则自动创建会议</p>
-      <el-row :gutter="20">
-        <el-col :span="24"><div class="grid-content" @click="join">加入/创建会议</div></el-col>
-      </el-row>
+      <!-- rtc 房间 -->
+      <comp-room
+        :sdkAppId="Number(sdkAppId)"
+        :secretKey="secretKey"
+        :userId="userId"
+        :roomId="Number(roomId)"
+        :cameraId="cameraId"
+        :microphoneId="microphoneId"></comp-room>
     </div>
   </div>
 </template>
@@ -18,12 +18,13 @@
 <script>
 import { mapState } from 'vuex';
 import compNav from '@/components/comp-nav.vue';
+import compRoom from '@/components/comp-room.vue';
 import { clearUrlParam } from '@/utils/utils';
 
 export default {
-  name: 'App',
   components: {
     compNav,
+    compRoom,
   },
   data() {
     return {};
@@ -41,9 +42,6 @@ export default {
   methods: {
     handleValueChange(value, key) {
       this[key] = value;
-    },
-    join() {
-      this.$router.push('/join');
     },
   },
   mounted() {
@@ -97,18 +95,6 @@ export default {
       }
     }
   }
-}
-.grid-content {
-  width: 100%;
-  height: 100px;
-  background: #0D6EFD;
-  text-align: center;
-  line-height: 100px;
-  font-size: 30px;
-  margin: 20px 0 10px;
-  color: #fff;
-  border-radius: 5px;
-  cursor: pointer;
 }
 </style>
 
