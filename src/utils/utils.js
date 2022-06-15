@@ -60,3 +60,10 @@ export function genUserId() {
 export function genRoomId() {
   return parseInt(Math.random() * 100000000, 10);
 }
+// @TGS#3ZF2K7NI
+/**
+ * 随机房号和userId
+ * */
+export function genGroupId() {
+  return `@TGS#${parseInt(Math.random() * 300000000, 10).toString(16).toUpperCase()}`;
+}

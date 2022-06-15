@@ -2,7 +2,7 @@
   <div class="invite-container">
     <comp-nav></comp-nav>
     <div
-      v-if="sdkAppId && Number(roomId)" class="content" :class="$isMobile && 'content-mobile'">
+      v-if="loadProfile" class="content" :class="$isMobile && 'content-mobile'">
       <!-- rtc 房间 -->
       <comp-room
         ref="room"
@@ -24,6 +24,7 @@ import compNav from '@/components/comp-nav.vue';
 import CompRoom from '@/components/comp-room.vue';
 import { getUrlParam } from '@/utils/utils.js';
 import { mapState } from 'vuex';
+import {MessageBox} from "element-ui";
 
 export default {
   data() {
@@ -34,6 +35,7 @@ export default {
       roomId: 0,
       roomIsReady: false,
       joined: false,
+      loadProfile: false,
     };
   },
   computed: {
@@ -52,6 +54,31 @@ export default {
     this.roomId = Number(getUrlParam('roomId'));
     console.log('xxxx===>', this.sdkAppId, this.userSig, this.userId, this.roomId);
     // clearUrlParam();
+    this.$store.state.remoteStore.persistence.get(`yf_${this.roomId}`).then((res) => {
+      this.$store.commit('tim/updateGroupId', res.data?.groupId);
+      this.$store.commit('tim/updateProfile', res?.data || {});
+      // console.log('this.roomIdthis.roomI==>', this.roomId);
+      if (res?.data?.status === 'off') {
+        this.$alert('会议已结束');
+        MessageBox('会议已结束', '提示', {
+          confirmButtonText: '确定',
+          showCancelButtonText: false,
+          showClose: false,
+          type: 'warning',
+          beforeClose: () => {
+            this.$router.push('/');
+          },
+        })
+          .then(() => {
+            this.$router.push('/');
+          })
+          .catch(() => {
+            this.$router.push('/');
+          });
+        return;
+      }
+      this.loadProfile = true;
+    });
   },
   watch: {
     roomIsReady: {

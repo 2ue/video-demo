@@ -29,11 +29,12 @@ export default {
   computed: {
     ...mapState({
       groupOwnerId(state) {
-        return state.tim.groupOwnerId || this.groupInfo?.groupProfile?.selfInfo?.userID;
+        console.log('JJJJJJ==>', JSON.parse(JSON.stringify(state.tim)));
+        return state.tim.profile?.groupOwnerId || state.tim.groupOwnerId || this.groupInfo?.groupProfile?.selfInfo?.userID;
       },
     }),
     isOwner() {
-      return this.groupOwnerId === this.userId;
+      return this.groupOwnerId && this.groupOwnerId === this.userId;
     },
     streamList() {
       const streams = [];
@@ -70,17 +71,13 @@ export default {
       });
       this.addSuccessLog(`Client [${this.userId}] created.`);
       this.handleClientEvents();
-      if (this.roomId && this.groupId) {
-        this.$store.dispatch('remoteStore/updateRemoteStore', {
-          roomId: this.roomId,
-        });
-      }
-      console.log('this.roomId===>', this.roomId);
-      this.$store.state.remoteStore.persistence.get(`yf_${this.roomId}`).then((res) => {
-        this.$store.commit('tim/updateGroupId', res.data?.groupId);
-        console.log('this.roomIdthis.roomI==>', this.roomId);
-        this.initTIM(this.roomId);
-      });
+      this.initTIM(this.roomId);
+      // if (this.roomId && this.groupId) {
+      //   this.$store.dispatch('remoteStore/updateRemoteStore', {
+      //     roomId: this.roomId,
+      //   });
+      // }
+      // console.log('this.roomId===>', this.roomId);
     },
 
     async initLocalStream() {

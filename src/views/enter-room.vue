@@ -48,7 +48,6 @@ export default {
       this.$router.go(-1);
     },
     submit() {
-      console.log('form===>', this.form);
       if (!this.form.userId || !this.form.roomId) {
         this.$alert('请输userId和会议ID', '提示');
         return;

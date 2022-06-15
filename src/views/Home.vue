@@ -52,7 +52,6 @@ export default {
         roomId: genRoomId(),
         userId: this.userId,
       }, 'room');
-      console.log('xxxxx===>', genRoomId(), link);
       window.location.href = link;
     },
   },

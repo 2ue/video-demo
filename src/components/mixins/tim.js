@@ -1,5 +1,6 @@
 import TIM from 'tim-js-sdk';
 import { mapState } from 'vuex';
+// import { genGroupId } from '@/utils/utils';
 // import this.$store from '@/this.$store';
 
 const GROUP_TYPE = TIM.TYPES.GRP_MEETING;
@@ -21,22 +22,23 @@ export default {
       sdkIsReady: state => state.tim.sdkIsReady,
     }),
   },
-  watch: {
-    sdkIsReady: {
-      immediate: true,
-      handler(value) {
-        if (value) {
-          console.log('watch SDK===>', value, this.groupId, this.isCreating);
-          if (!this.groupId && !this.isCreating) {
-            console.log('start ===createGroup');
-            this.createGroup();
-          } else {
-            this.joinGroup(this.groupId);
-          }
-        }
-      },
-    },
-  },
+  // watch: {
+  //   sdkIsReady: {
+  //     immediate: true,
+  //     handler(value) {
+  //       if (value) {
+  //         console.log('watch SDK===>', value, this.groupId, this.isCreating);
+  //         if (!this.groupId && !this.isCreating) {
+  //           console.log('start ===createGroup');
+  //           this.isCreating = true;
+  //           this.createGroup();
+  //         } else {
+  //           this.joinGroup(this.groupId);
+  //         }
+  //       }
+  //     },
+  //   },
+  // },
   methods: {
     initTIM(roomId) {
       this.roomId2 = roomId;
@@ -50,11 +52,17 @@ export default {
       window.$tim.on(TIM.EVENT.KICKED_OUT, this.kickedOut);
       window.$tim.on(TIM.EVENT.ERROR, this.sdkError);
       window.$tim.on(TIM.EVENT.NET_STATE_CHANGE, this.netStateChange);
-      window.$tim.on(TIM.EVENT.CONVERSATION_LIST_UPDATED, this.conversationListUpdate);
-      window.$tim.on(TIM.EVENT.MESSAGE_RECEIVED, this.messageReceived);
     },
     sdkReady() {
       this.$store.commit('tim/updateSdkIsReady', true);
+      if (!this.groupId && !this.isCreating) {
+        console.log('start ===createGroup');
+        this.createGroup();
+      } else {
+        this.joinGroup(this.groupId);
+      }
+      window.$tim.on(TIM.EVENT.CONVERSATION_LIST_UPDATED, this.conversationListUpdate);
+      window.$tim.on(TIM.EVENT.MESSAGE_RECEIVED, this.messageReceived);
     },
     sdkNotReady(event) {
       console.log('TIM.EVENT.SDK_NOT_READY', event);
@@ -70,10 +78,14 @@ export default {
       console.log('TIM.EVENT.NET_STATE_CHANGE', event);
     },
     conversationListUpdate(event) {
-      console.log('TIM.EVENT.CONVERSATION_LIST_UPDATED', event);
+      console.log('TIM.EVENT.CONVERSATION_LIST_UPDATED', this.groupId, event);
       const list = event.data;
       const group = list.find(c => `${c.conversationID.replace(c.type, '')}` === this.groupId) || {};
       this.$store.commit('tim/updateGroupInfo', group);
+      if (group.conversationID) {
+        this.getMessageList(group.conversationID.replace(group.type, ''));
+        this.scrollToBottom();
+      }
     },
     messageReceived(event) {
       console.log('TIM.EVENT.MESSAGE_RECEIVED', event);
@@ -87,21 +99,22 @@ export default {
       });
     },
     logout() {},
-    async createGroup() {
-      // eslint-disable-next-line no-debugger
-      console.log('====>', this.isCreating, this.sdkNotReady, this.roomId, this.roomId);
-      if (!this.sdkIsReady) return;
+    createGroup() {
+      if (!this.sdkIsReady || this.isCreating) return;
+      console.log('xgggggggggggg==>', this.isCreating);
       this.isCreating = true;
       const promise = window.$tim.createGroup({
         type: GROUP_TYPE,
         name: 'MEETING',
       });
-      await promise.then((imResponse) => { // 创建成功
+      promise.then((imResponse) => { // 创建成功
         const group = imResponse?.data?.group || {};
         console.log('create group', group); // 创建的群的资料
         this.$store.commit('tim/updateGroupId', group.groupID);
         this.$store.dispatch('remoteStore/updateRemoteStore', {
           roomId: this.roomId2,
+          groupId: group.groupID,
+          groupOwnerId: this.userId,
         });
       }).catch((imError) => {
         console.warn('createGroup error:', imError); // 创建群组失败的相关信息
@@ -109,8 +122,10 @@ export default {
       this.isCreating = false;
     },
     joinGroup() {
+      console.log('xxxxxxxxx========>', 22222);
       const promise = window.$tim.joinGroup({ groupID: this.groupId, type: GROUP_TYPE });
       promise.then((imResponse) => {
+        console.log('xxxxxxxxx========>', imResponse);
         switch (imResponse.data.status) {
           case TIM.TYPES.JOIN_STATUS_WAIT_APPROVAL: // 等待管理员同意
             break;
@@ -133,7 +148,9 @@ export default {
       }).catch((imError) => {
         console.warn('dismissGroup error:', imError); // 解散群组失败的相关信息
       });
-      this.$store.state.remoteStore.persistence.set(`yf_${roomId}`, { status: 'off' });
+      if (roomId) {
+        this.$store.state.remoteStore.persistence.set(`yf_${roomId}`, { status: 'off' });
+      }
     },
     quitGroup() {
       const promise = window.$tim.quitGroup(this.groupId);
@@ -162,8 +179,8 @@ export default {
         }
       });
     },
-    getMessageList() {
-      const promise = window.$tim.getMessageList({ conversationID: `GROUP${this.groupId}`, count: 15 });
+    getMessageList(groupId) {
+      const promise = window.$tim.getMessageList({ conversationID: `GROUP${groupId || this.groupId}`, count: 15 });
       promise.then((imResponse) => {
         const { messageList, nextReqMessageID, isCompleted } = imResponse.data; // 消息列表。
         // const {nextReqMessageID} = imResponse.data; // 用于续拉，分页续拉时需传入该字段。

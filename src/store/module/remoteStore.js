@@ -8,10 +8,10 @@ export default {
     persistence,
   },
   actions: {
-    updateRemoteStore({ rootState }, { roomId, status = 'on' }) {
-      const { groupId } = rootState.tim;
+    updateRemoteStore(root, { roomId, groupId, groupOwnerId, status = 'on' }) {
+      // const { groupId } = rootState.tim;
       // console.log('rootState=====>', rootState);
-      persistence.set(`yf_${roomId}`, { groupId, roomId, status });
+      persistence.set(`yf_${roomId}`, { groupId, roomId, groupOwnerId, status });
     },
     // getRemoteStore({ rootState }) {
     //   persistence.get(`yf_${rootState.roomId}`).then((res) => {

@@ -65,10 +65,6 @@ export default {
   created() {
     // this.messageList = this.getMessageList();
   },
-  mounted() {
-    this.getMessageList();
-    this.scrollToBottom();
-  },
   beforeDestroy() {
     this.$store.commit('tim/setMessageList', []);
   },
