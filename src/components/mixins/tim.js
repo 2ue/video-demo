@@ -84,7 +84,7 @@ export default {
       this.$store.commit('tim/updateGroupInfo', group);
       if (group.conversationID) {
         this.getMessageList(group.conversationID.replace(group.type, ''));
-        this.scrollToBottom();
+        // this.scrollToBottom();
       }
     },
     messageReceived(event) {
