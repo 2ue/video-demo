@@ -51,9 +51,9 @@ export default {
       });
     },
   },
-  beforeCreate() {
-    TRTC.Logger.setLogLevel(TRTC.Logger.LogLevel.NONE);
-  },
+  // beforeCreate() {
+  //   TRTC.Logger.setLogLevel(TRTC.Logger.LogLevel.NONE);
+  // },
   beforeDestroy() {
     console.log('xxx===>', 111);
     this.leave();
