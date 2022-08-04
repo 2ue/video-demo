@@ -88,6 +88,13 @@ export default {
         cameraId: this.cameraId,
         microphoneId: this.microphoneId,
       });
+      console.log('createStream======>', {
+        audio: true,
+        video: true,
+        userId: this.userId,
+        cameraId: this.cameraId,
+        microphoneId: this.microphoneId,
+      });
       this.localStream.setVideoProfile('1080p');
       try {
         await this.localStream.initialize();

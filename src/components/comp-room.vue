@@ -255,12 +255,14 @@ export default {
       // this.currentStream.switchDevice('video', id).then(() => {
       //   console.log('switch camera success');
       // });
+      console.log('11111 switch camera success');
       this.cameraId = id;
     },
     changeMicrophone(id) {
       // this.currentStream.switchDevice('audio', id).then(() => {
       //   console.log('switch audio success');
       // });
+      console.log('22222 switch camera success');
       this.microphoneId = id;
     },
     changeSpeaker() {
