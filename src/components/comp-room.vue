@@ -6,11 +6,7 @@
 <template>
   <div class="rtc-container">
     <p>会议ID：{{ roomId }}</p>
-    <div>
-      <DeviceSelect deviceType="camera" @change="changeCamera"></DeviceSelect>
-      <DeviceSelect deviceType="microphone" @change="changeMicrophone"></DeviceSelect>
-      <DeviceSelect deviceType="speaker" @change="changeSpeaker"></DeviceSelect>
-    </div>
+    <slot></slot>
     <!-- 进房操作区域 -->
     <div v-if="!manualEnter" class="control-container">
       <div class="rtc-control-container">
@@ -182,13 +178,11 @@ import shareRtc from  './mixins/share-rtc.js';
 import roomLink from './mixins/room-link';
 import LibGenerateTestUserSig from '@/utils/lib-generate-test-usersig.min.js';
 import ImCom from './im';
-import DeviceSelect from './comp-device-select.vue';
 
 export default {
   name: 'compRoom',
   components: {
     ImCom,
-    DeviceSelect
   },
   mixins: [tim, rtc, shareRtc, roomLink],
   props: {
@@ -197,8 +191,8 @@ export default {
     secretKey: String,
     userId: String,
     roomId: Number,
-    // cameraId: String,
-    // microphoneId: String,
+    cameraId: String,
+    microphoneId: String,
     inviteUserSig: String,
     manualEnter: Boolean,
   },
@@ -208,8 +202,6 @@ export default {
       inviteLink: '',
       showCopiedTip: false,
       canShare: false,
-      cameraId: '',
-      microphoneId: '',
     };
   },
   computed: {
@@ -253,25 +245,6 @@ export default {
     this.$emit('mounted');
   },
   methods: {
-    changeCamera(id) {
-      // this.currentStream.switchDevice('video', id).then(() => {
-      //   console.log('switch camera success');
-      // });
-      console.log('11111 switch camera success testtt', id);
-      this.cameraId = id;
-    },
-    changeMicrophone(id) {
-      // this.currentStream.switchDevice('audio', id).then(() => {
-      //   console.log('switch audio success');
-      // });
-      console.log('22222 switch audio success testtt', id);
-      this.microphoneId = id;
-    },
-    changeSpeaker() {
-    //   this.currentStream.switchDevice('audio', id).then(() => {
-    //     console.log('switch camera success');
-    //   });
-    },
     inviteOne() {
       this.canShare = true;
       this.generateInviteLink();

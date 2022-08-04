@@ -4,7 +4,13 @@
     <div
       v-if="loadProfile" class="content" :class="$isMobile && 'content-mobile'">
       <!-- rtc 房间 -->
+      <div>
+        <DeviceSelect deviceType="camera" @change="changeCamera"></DeviceSelect>
+        <DeviceSelect deviceType="microphone" @change="changeMicrophone"></DeviceSelect>
+        <DeviceSelect deviceType="speaker" @change="changeSpeaker"></DeviceSelect>
+      </div>
       <comp-room
+        v-if="cameraId"
         ref="room"
         type="invite"
         :sdkAppId="Number(sdkAppId)"
@@ -13,6 +19,8 @@
         :roomId="Number(roomId)"
         :secretKey="secretKey"
         :manual-enter="true"
+        :cameraId="cameraId"
+        :microphoneId="microphoneId"
         @mounted="roomIsReady = true"
       />
     </div>
@@ -25,6 +33,7 @@ import CompRoom from '@/components/comp-room.vue';
 import { getUrlParam } from '@/utils/utils.js';
 import { mapState } from 'vuex';
 import {MessageBox} from "element-ui";
+import DeviceSelect from '@/components/comp-device-select.vue';
 
 export default {
   data() {
@@ -36,6 +45,8 @@ export default {
       roomIsReady: false,
       joined: false,
       loadProfile: false,
+      cameraId: '',
+      microphoneId: ''
     };
   },
   computed: {
@@ -46,6 +57,7 @@ export default {
   components: {
     compNav,
     CompRoom,
+    DeviceSelect
   },
   created() {
     this.sdkAppId = Number(getUrlParam('sdkAppId'));
@@ -89,6 +101,27 @@ export default {
           this.joined = true;
         }
       },
+    },
+  },
+  methods: {
+    changeCamera(id) {
+      // this.currentStream.switchDevice('video', id).then(() => {
+      //   console.log('switch camera success');
+      // });
+      console.log('11111 switch camera success testtt', id);
+      this.cameraId = id;
+    },
+    changeMicrophone(id) {
+      // this.currentStream.switchDevice('audio', id).then(() => {
+      //   console.log('switch audio success');
+      // });
+      console.log('22222 switch audio success testtt', id);
+      this.microphoneId = id;
+    },
+    changeSpeaker() {
+    //   this.currentStream.switchDevice('audio', id).then(() => {
+    //     console.log('switch camera success');
+    //   });
     },
   },
 };

@@ -5,7 +5,7 @@
 -->
 <template>
   <div class="invite-container">
-    <comp-nav></comp-nav>
+    <comp-nav v-if="cameraId" :cameraId="cameraId" :microphoneId="microphoneId"></comp-nav>
     <div class="content" :class="$isMobile && 'content-mobile'">
       <div class="invite-tips">
         {{ $t("You've been invited to a video call")}}
@@ -34,6 +34,8 @@ export default {
       userSig: '',
       userId: '',
       roomId: 0,
+      cameraId: '',
+      microphoneId: '',
     };
   },
   components: {

@@ -27,7 +27,8 @@ export default {
     compRoom,
   },
   data() {
-    return {};
+    return {
+    };
   },
   computed: {
     ...mapState({
