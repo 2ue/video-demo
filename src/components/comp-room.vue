@@ -7,9 +7,9 @@
   <div class="rtc-container">
     <p>会议ID：{{ roomId }}</p>
     <div>
-      <DeviceSelect deviceType="camera"></DeviceSelect>
-      <DeviceSelect deviceType="microphone"></DeviceSelect>
-      <DeviceSelect deviceType="speaker"></DeviceSelect>
+      <DeviceSelect deviceType="camera" @change="changeCamera"></DeviceSelect>
+      <DeviceSelect deviceType="microphone" @change="changeMicrophone"></DeviceSelect>
+      <DeviceSelect deviceType="speaker" @change="changeSpeaker"></DeviceSelect>
     </div>
     <!-- 进房操作区域 -->
     <div v-if="!manualEnter" class="control-container">
@@ -249,6 +249,21 @@ export default {
     this.$emit('mounted');
   },
   methods: {
+    changeCamera(id) {
+      this.currentStream.switchDevice('video', id).then(() => {
+        console.log('switch camera success');
+      });
+    },
+    changeMicrophone(id) {
+      this.currentStream.switchDevice('audio', id).then(() => {
+        console.log('switch audio success');
+      });
+    },
+    changeSpeaker() {
+    //   this.currentStream.switchDevice('audio', id).then(() => {
+    //     console.log('switch camera success');
+    //   });
+    },
     inviteOne() {
       this.canShare = true;
       this.generateInviteLink();
