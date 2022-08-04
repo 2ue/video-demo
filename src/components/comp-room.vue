@@ -242,9 +242,11 @@ export default {
   watch: {
     cameraId(val) {
       this.switchDevice('video', val);
+      console.log('watch run testtt video', val);
     },
     microphoneId(val) {
       this.switchDevice('audio', val);
+      console.log('watch run testtt audio', val);
     },
   },
   mounted() {
@@ -520,14 +522,14 @@ export default {
 }
 .stream-show {
   width: 100%;
-  max-height: 640px;
-  display: flex;
+  // max-height: 640px;
+  // display: flex;
   border: 1px solid #000;
   .is-speaking {
     border-color: #00ff00 !important;
   }
   .local-stream-container {
-    width: 80%;
+    width: 100%;
     position: relative;
     .local-stream-control {
       width: 100%;
@@ -543,7 +545,7 @@ export default {
     }
   }
   .remote-container {
-    width: 20%;
+    width: 100%;
     //display: flex;
     //flex-wrap: wrap;
     border-left: 1px solid #000;
@@ -551,7 +553,7 @@ export default {
     overflow-y: auto;
     .remote-stream-container {
       position: relative;
-      width: 100%;
+      width: 240px;
       padding: 10px;
       background: #c0c0c0;
       box-sizing: border-box;
@@ -564,8 +566,8 @@ export default {
     }
     .remote-stream-container-mute {
       position: relative;
-      min-height: 150px;
-      line-height: 150px;
+      // min-height: 150px;
+      // line-height: 150px;
       width: 100%;
       text-align: center;
       background: #000000;

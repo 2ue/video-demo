@@ -334,6 +334,7 @@ export default {
       try {
         if (this.localStream) {
           this.localStream.switchDevice(type, deviceId);
+          console.log('switchDevice run testtt', type, deviceId);
           this.addSuccessLog(`Switch ${type} device success.`);
         }
       } catch (error) {
