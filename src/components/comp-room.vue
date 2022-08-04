@@ -197,8 +197,8 @@ export default {
     secretKey: String,
     userId: String,
     roomId: Number,
-    cameraId: String,
-    microphoneId: String,
+    // cameraId: String,
+    // microphoneId: String,
     inviteUserSig: String,
     manualEnter: Boolean,
   },
@@ -208,6 +208,8 @@ export default {
       inviteLink: '',
       showCopiedTip: false,
       canShare: false,
+      cameraId: '',
+      microphoneId: '',
     };
   },
   computed: {
@@ -250,14 +252,16 @@ export default {
   },
   methods: {
     changeCamera(id) {
-      this.currentStream.switchDevice('video', id).then(() => {
-        console.log('switch camera success');
-      });
+      // this.currentStream.switchDevice('video', id).then(() => {
+      //   console.log('switch camera success');
+      // });
+      this.cameraId = id;
     },
     changeMicrophone(id) {
-      this.currentStream.switchDevice('audio', id).then(() => {
-        console.log('switch audio success');
-      });
+      // this.currentStream.switchDevice('audio', id).then(() => {
+      //   console.log('switch audio success');
+      // });
+      this.microphoneId = id;
     },
     changeSpeaker() {
     //   this.currentStream.switchDevice('audio', id).then(() => {
