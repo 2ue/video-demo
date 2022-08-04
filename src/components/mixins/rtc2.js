@@ -52,7 +52,7 @@ export default {
     },
   },
   // beforeCreate() {
-  //   TRTC.Logger.setLogLevel(TRTC.Logger.LogLevel.NONE);
+  //   TRTC.genUserIdLogLevel(TRTC.Logger.LogLevel.NONE);
   // },
   beforeDestroy() {
     console.log('xxx===>', 111);
@@ -110,7 +110,7 @@ export default {
           })
           .catch((error) => {
             this.hasCurrentStream = false;
-            this.addSuccessLog(`${stream.getUserId()}: stream[${stream.getId()}] play success: ${JSON.stringify(error)}`);
+            this.addSuccessLog(`${stream.getUserId()}: stream[${stream.getId()}] play error: ${JSON.stringify(error)}`);
           });
       }
     },

@@ -6,6 +6,11 @@
 <template>
   <div class="rtc-container">
     <p>会议ID：{{ roomId }}</p>
+    <div>
+      <DeviceSelect deviceType="camera"></DeviceSelect>
+      <DeviceSelect deviceType="microphone"></DeviceSelect>
+      <DeviceSelect deviceType="speaker"></DeviceSelect>
+    </div>
     <!-- 进房操作区域 -->
     <div v-if="!manualEnter" class="control-container">
       <div class="rtc-control-container">
@@ -177,11 +182,13 @@ import shareRtc from  './mixins/share-rtc.js';
 import roomLink from './mixins/room-link';
 import LibGenerateTestUserSig from '@/utils/lib-generate-test-usersig.min.js';
 import ImCom from './im';
+import DeviceSelect from './comp-device-select.vue';
 
 export default {
   name: 'compRoom',
   components: {
     ImCom,
+    DeviceSelect
   },
   mixins: [tim, rtc, shareRtc, roomLink],
   props: {
