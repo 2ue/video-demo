@@ -42,9 +42,11 @@ export default {
       switch (this.deviceType) {
         case 'camera':
           this.deviceList = await TRTC.getCameras();
+          console.log('JSON==== camera testtt', this.deviceList);
           break;
         case 'microphone':
           this.deviceList = await TRTC.getMicrophones();
+          console.log('JSON==== microphone testtt', this.deviceList);
           break;
         case 'speaker':
           this.deviceList = await TRTC.getSpeakers();
