@@ -394,7 +394,7 @@ export default {
       this.client.on('peer-leave', (event) => {
         const { userId } = event;
         console.log(`peer-leave ${userId}`, event);
-        const _this = this;
+        const that = this;
         console.log('this.$store.state.tim.groupOwnerId===>', this.groupOwnerId, userId);
         if (this.groupOwnerId === userId) {
           MessageBox('会议已结束', '提示', {
@@ -403,22 +403,25 @@ export default {
             showClose: false,
             type: 'warning',
             beforeClose() {
-              _this.leaveRoom();
-              _this.dismissGroup(_this.roomId);
+              that.leaveRoom();
+              that.dismissGroup(that.roomId);
             },
-          }).then(() => {
-            this.leaveRoom();
-            this.dismissGroup(this.roomId);
-          }).catch(() => {
-            this.leaveRoom();
-            this.dismissGroup(this.roomId);
-          });
+          })
+            .then(() => {
+              this.leaveRoom();
+              this.dismissGroup(this.roomId);
+            })
+            .catch(() => {
+              this.leaveRoom();
+              this.dismissGroup(this.roomId);
+            });
         }
       });
 
       // fired when a remote stream is added
       this.client.on('stream-added', (event) => {
         const { stream: remoteStream } = event;
+        console.log('get yuv', remoteStream.getVideoTrack());
         const remoteUserId = remoteStream.getUserId();
         if (remoteUserId === `share${this.userId}`) {
           // don't need screen shared by us
@@ -485,6 +488,9 @@ export default {
       this.client.on('network-quality', (event) => {
         const { uplinkNetworkQuality, downlinkNetworkQuality } = event;
         console.log(`network-quality uplinkNetworkQuality: ${uplinkNetworkQuality}, downlinkNetworkQuality: ${downlinkNetworkQuality}`);
+      });
+      this.client.on('player-state-changed', (event) => {
+        console.log('player-state-changed====>', event);
       });
     },
   },
