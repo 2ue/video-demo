@@ -96,6 +96,7 @@ export default {
         microphoneId: this.microphoneId,
       });
       this.localStream.setVideoProfile('1080p');
+      this.onPlayerStateChanged(this.localStream, 'local streammm');
       try {
         await this.localStream.initialize();
         this.currentStream = this.localStream;
@@ -176,6 +177,12 @@ export default {
         this.reportFailedEvent('joinRoom', error);
         throw error;
       }
+    },
+    onPlayerStateChanged(stream, type) {
+      stream.on('player-state-changed', event => {
+        console.log('native====>', type, 'player is', event);
+        console.log('native====>', type, `${event.type} 111 player is ${event.state} because of ${event.reason}`);
+      });
     },
 
     async publish() {
@@ -430,6 +437,7 @@ export default {
           console.log(`remote stream added: [${remoteUserId}] type: ${remoteStream.getType()}`);
           // subscribe to this remote stream
           this.subscribe(remoteStream);
+          this.onPlayerStateChanged(remoteStream, 'remote streammm');
           this.addSuccessLog(`RemoteStream added: [${remoteUserId}].`);
         }
       });
@@ -489,9 +497,9 @@ export default {
         const { uplinkNetworkQuality, downlinkNetworkQuality } = event;
         console.log(`network-quality uplinkNetworkQuality: ${uplinkNetworkQuality}, downlinkNetworkQuality: ${downlinkNetworkQuality}`);
       });
-      this.client.on('player-state-changed', (event) => {
-        console.log('player-state-changed====>', event);
-      });
+      // this.client.on('player-state-changed', (event) => {
+      //   console.log('player-state-changed====>', event);
+      // });
     },
   },
 };

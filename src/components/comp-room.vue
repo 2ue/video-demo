@@ -526,7 +526,8 @@ export default {
     overflow-y: auto;
     .remote-stream-container {
       position: relative;
-      width: 240px;
+      width: 150px;
+      height: 150px;
       padding: 10px;
       background: #c0c0c0;
       box-sizing: border-box;
