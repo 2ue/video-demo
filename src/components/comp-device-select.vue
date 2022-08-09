@@ -66,7 +66,7 @@ export default {
     navigator.mediaDevices.getUserMedia({ audio: true, video: true }).then(() => {
       this.getDeviceList();
     });
-    navigator.mediaDevices.addEventListener('devicechange', this.getDeviceList);
+    // navigator.mediaDevices.addEventListener('devicechange', this.getDeviceList);
   },
   beforeDestroy() {
     navigator.mediaDevices.removeEventListener('devicechange', this.getDeviceList);
