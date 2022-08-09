@@ -55,7 +55,7 @@ export default {
           break;
       }
       [this.activeDevice] = this.deviceList;
-      this.activeDeviceId = this.deviceList[0]?.deviceId;
+      this.activeDeviceId = this.deviceList[0] ? this.deviceList[0].deviceId : '';
       this.$emit('change', this.activeDeviceId);
     },
     handleChange() {
